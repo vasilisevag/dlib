@@ -17,83 +17,30 @@ namespace dlib
     {
         /*!
             INITIAL VALUE
-                - if (m != 0) then
+                - if (m != 0) then 
                     - the mutex pointed to by m is locked
-                - if (r != 0) then
-                    - the mutex pointed to by r is locked
-                - if (rw != 0) then
-                    - the mutex pointed to by rw is locked
-                - exactly one of r, m, or rw is not 0.
-
+                    
             CONVENTION
                 - if (m != 0) then
                     - the mutex pointed to by m is locked
-                - if (r != 0) then
-                    - the mutex pointed to by r is locked
-                - if (rw != 0) then
-                    - the mutex pointed to by rw is locked
-                - exactly one of r, m, or rw is not 0.
         !*/
+        
     public:
-
-        explicit auto_mutex (
-            const mutex& m_
-        ) : m(&m_),
-            r(0),
-            rw(0)
-        {
+        explicit auto_mutex (const MUTEX& m_) : m(&m_) {
             m->lock();
         }
 
-        explicit auto_mutex (
-            const rmutex& r_
-        ) : m(0),
-            r(&r_),
-            rw(0)
-        {
-            r->lock();
+        void unlock() {
+            m->unlock();
+            m = nullptr;
         }
 
-        explicit auto_mutex (
-            const read_write_mutex& rw_
-        ) : m(0),
-            r(0),
-            rw(&rw_)
-        {
-            rw->lock();
-        }
-
-        void unlock()
-        {
-            if (m != 0)
-            {
-                m->unlock();
-                m = 0;
-            }
-            else if (r != 0)
-            {
-                r->unlock();
-                r = 0;
-            }
-            else if (rw != 0)
-            {
-                rw->unlock();
-                rw = 0;
-            }
-        }
-
-        ~auto_mutex (
-        )
-        {
+        ~auto_mutex () {
             unlock();
         }
-
+        
     private:
-
-        const mutex* m;
-        const rmutex* r;
-        const read_write_mutex* rw;
-
+        const MUTEX* m;
         // restricted functions
         auto_mutex(auto_mutex&);        // copy constructor
         auto_mutex& operator=(auto_mutex&);    // assignment operator
